@@ -1,3 +1,9 @@
+*, *:before, *:after  {
+-webkit-box-sizing: content-box !important;
+-moz-box-sizing: content-box !important;
+box-sizing: content-box !important; 
+}
+
 .gantt, .gantt2 {
     width: 100%;
     margin: 20px auto;
@@ -227,6 +233,7 @@
 .fn-gantt .ganttOrange .fn-label {
     color: #714715 !important;
 }
+
 
 
 /* === BOTTOM NAVIGATION === */
