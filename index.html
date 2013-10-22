@@ -332,12 +332,14 @@ source: [{
 
 <pre class="prettyprint">
 values: [{
+	id: 't01',
 	to: "/Date(1328832000000)/",
 	from: "/Date(1333411200000)/",
 	desc: "Something",
 	label: "Example Value",
 	customClass: "ganttRed",
-	dataObj: foo.bar[i]
+	dataObj: foo.bar[i],
+	dep: 't02' or [...]
 }]
 </pre>
 
@@ -356,6 +358,17 @@ values: [{
 					</tr>
 				</thead>
 				<tbody>
+					<tr>
+						<td>
+							<code>id</code>
+						</td>
+						<td>
+							String
+						</td>
+						<td>
+							Task ID (optional)
+						</td>
+					</tr>
 					<tr>
 						<td>
 							<code>to</code>
@@ -422,6 +435,171 @@ values: [{
 							A data object that is applied directly to the gantt item.
 						</td>
 					</tr>
+					<tr>
+						<td>
+							<code>dep</code>
+						</td>
+						<td>
+							Array or String
+						</td>
+						<td>
+							Dependencies to other tasks. If String is given, it just draws line to one task with given ID. If Array is given, it processes String or Object values (described below). 
+						</td>
+					</tr>
+				</tbody>
+			</table>
+						<h2>
+				Dependencies Configuration
+			</h2>
+
+<pre class="prettyprint">
+dep: [
+	't03',
+	...,
+	{
+	id: 't01', 
+	options: {
+		distance: 20, 
+		lineThickness: 1, 
+		lineColor: '#F00', 
+		lineStyle: 'dashed', 
+		type: 'middle'
+		}
+	}
+]
+
+</pre>
+<p>Notice: deps array can include just task id's (as String, default values are used) or complete Object with id and options.</p>
+
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>
+							Parameter
+						</th>
+						<th>
+							Accepts Type
+						</th>
+						<th>
+							Meaning
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							<code>id</code>
+						</td>
+						<td>
+							String
+						</td>
+						<td>
+							Dependant task ID
+						</td>
+					</tr>
+										<tr>
+						<td>
+							<code>options</code>
+						</td>
+						<td>
+							Object
+						</td>
+						<td>
+							Line options (see table below)
+						</td>
+					</tr>
+					
+				</tbody>
+			</table>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>
+							Parameter
+						</th>
+						<th>
+							Default
+						</th>
+						<th>
+							Accepts Type
+						</th>
+						<th>
+							Meaning
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							<code>distance</code>
+						</td>
+						<td>
+							20
+						</td>
+						<td>
+							Integer
+						</td>
+						<td>
+							Line width before bending (px)
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>lineThickness</code>
+						</td>
+						<td>
+							1
+						</td>
+						<td>
+							Integer
+						</td>
+						<td>
+							line thickness in px
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>lineColor</code>
+						</td>
+						<td>
+							'#999'
+						</td>
+						<td>
+							String (hexCode)
+						</td>
+						<td>
+							line color
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>lineStyle</code>
+						</td>
+						<td>
+							'solid'
+						</td>
+						<td>
+							String
+						</td>
+						<td>
+							css line style (solid, dashed etc.)
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>type</code>
+						</td>
+						<td>
+							'after'
+						</td>
+						<td>
+							String ('after'|'middle')
+						</td>
+						<td>
+							if dependency starts in the middle of the bar or after
+						</td>
+					</tr>
+					
 				</tbody>
 			</table>
 
@@ -441,6 +619,7 @@ values: [{
 					name: "Sprint 0",
 					desc: "Analysis",
 					values: [{
+						id: "t01",
 						from: "/Date(1383436800000)/",
 						to: "/Date(1385646400000)/",
 						label: "Requirement Gathering",
@@ -450,15 +629,18 @@ values: [{
 					name: " ",
 					desc: "Scoping",
 					values: [{
+						id: "t02",
 						from: "/Date(1385856000000)/",
 						to: "/Date(1386547200000)/",
 						label: "Scoping",
-						customClass: "ganttRed"
+						customClass: "ganttRed",
+						dep: "t01"
 					}]
 				},{
 					name: "Sprint 1",
 					desc: "Development",
 					values: [{
+						id: "t03",
 						from: "/Date(1387047200000)/",
 						to: "/Date(1388930000000)/",
 						label: "Development",
@@ -468,6 +650,7 @@ values: [{
 					name: " ",
 					desc: "Showcasing",
 					values: [{
+						id: "t04",
 						from: "/Date(1388930000000)/",
 						to: "/Date(1388940000000)/",
 						label: "Showcasing",
@@ -477,24 +660,33 @@ values: [{
 					name: "Sprint 2",
 					desc: "Development",
 					values: [{
+						id: "t05",
 						from: "/Date(1390030000000)/",
 						to: "/Date(1392030000000)/",
 						label: "Development",
-						customClass: "ganttGreen"
+						customClass: "ganttGreen",
+						dep: [
+							't03',
+							't04',
+							{id: 't01', options: {lineColor: '#F00', lineStyle: 'dashed', type: 'middle'}}
+						]
 					}]
 				},{
 					name: " ",
 					desc: "Showcasing",
 					values: [{
+						id: "t06",
 						from: "/Date(1392030000000)/",
 						to: "/Date(1392150000000)/",
 						label: "Showcasing",
-						customClass: "ganttBlue"
+						customClass: "ganttBlue",
+						dep: ["t01","t02"]
 					}]
 				},{
 					name: "Release Stage",
 					desc: "Training",
 					values: [{
+						id: "t07",
 						from: "/Date(1393256000000)/",
 						to: "/Date(1399856000000)/",
 						label: "Training",
@@ -504,6 +696,7 @@ values: [{
 					name: " ",
 					desc: "Deployment",
 					values: [{
+						id: "t08",
 						from: "/Date(1399856000000)/",
 						to: "/Date(1401956000000)/",
 						label: "Deployment",
@@ -513,6 +706,7 @@ values: [{
 					name: " ",
 					desc: "Warranty Period",
 					values: [{
+						id: "t08",
 						from: "/Date(1399856000000)/",
 						to: "/Date(1412956000000)/",
 						label: "Warranty Period",

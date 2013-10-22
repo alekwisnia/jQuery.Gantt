@@ -234,6 +234,15 @@ box-sizing: content-box !important;
     color: #714715 !important;
 }
 
+.fn-gantt .depLine {
+
+  -moz-box-sizing: border-box !important;
+  box-sizing: border-box !important;
+  background-color: transparent;
+  position: absolute;
+
+  z-index: 9;
+}
 
 
 /* === BOTTOM NAVIGATION === */
