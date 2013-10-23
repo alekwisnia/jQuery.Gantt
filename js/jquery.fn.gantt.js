@@ -242,7 +242,10 @@
             // Here we calculate the number of rows, pages and visible start
             // and end dates once the data is ready
             init: function (element) {
-                element.rowsNum = element.data.length;
+                //element.rowsNum = element.data.length; 
+				// correct length: groups + subtasks (AW)
+				element.rowsNum = tools.getRowCount(element);
+				console.log(tools.getRowCount(element));
                 element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
                 element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
 
@@ -324,21 +327,37 @@
                     .append($('<div class="row spacer"/>')
                     .css("height", tools.getCellSize() * element.headerRows + "px")
                     .css("width", "100%"));
-
-                var entries = [];
-                $.each(element.data, function (i, entry) {
-                    if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + i % settings.itemsPerPage * tools.getCellSize() + '">');
+				var drawLabel = function (row, entry){
+					 if (row >= element.pageNum * settings.itemsPerPage && row < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
+                        entries.push('<div class="row name row' + row + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + row + '" offset="' + row % settings.itemsPerPage * tools.getCellSize() + '">');
                         entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
                         entries.push('</div>');
 
                         if (entry.desc) {
-                            entries.push('<div class="row desc row' + i + ' " id="RowdId_' + i + '" data-id="' + entry.id + '">');
+                            entries.push('<div class="row desc row' + row + ' " id="RowdId_' + row + '" data-id="' + entry.id + '">');
                             entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.desc + '</span>');
                             entries.push('</div>');
                         }
 
                     }
+				}
+                var entries = [];
+				/* GROUPS TODO AW */
+				var i = 0;
+                $.each(element.data, function (j, entry) {
+					drawLabel(i, entry);
+					i++;
+					if (entry.collapsed == false || entry.collapsed == 'undefined'){
+						$.each(entry.values, function(k, task){
+							var entry = {
+								desc : task.label || "",
+								id : task.id || "",
+								name: ""
+							};
+							drawLabel(i, entry);
+							i++;
+						});
+					}
                 });
                 ganttLeftPanel.append(entries.join(""));
                 return ganttLeftPanel;
@@ -1004,172 +1023,193 @@
                         return "";
                     }
                 };
+				// common function for drawing bars (AW)
+				var drawBar = function (row, day){
+					if (row >= element.pageNum * settings.itemsPerPage && row < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
+						var _bar = null;
+
+						switch (settings.scale) {
+							// **Hourly data**
+							case "hours":
+								var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
+								var from = $(element).find('#dh-' + dFrom);
+
+								var dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
+								var to = $(element).find('#dh-' + dTo);
+
+								var cFrom = from.attr("offset");
+								var cTo = to.attr("offset");
+								var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
+
+								_bar = core.createProgressBar(
+											dl,
+											day.customClass ? day.customClass : "",
+											day.desc ? day.desc : "",
+											day.label ? day.label : "",
+											day.dataObj ? day.dataObj : null,
+											day.id ? day.id : ""
+										);
+
+								// find row
+								var topEl = $(element).find("#rowheader" + row);
+
+								var top = tools.getCellSize() * 5 + 2 + parseInt(topEl.attr("offset"), 10);
+								_bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+								datapanel.append(_bar);
+								break;
+
+							// **Weekly data**
+							case "weeks":
+								var dtFrom = tools.dateDeserialize(day.from);
+								var dtTo = tools.dateDeserialize(day.to);
+
+								if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+									dtFrom.setDate(dtFrom.getDate() + 4);
+								}
+
+								if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+									dtFrom.setDate(dtFrom.getDate() + 4);
+								}
+
+								if (dtTo.getDate() <= 3 && dtTo.getMonth() === 0) {
+									dtTo.setDate(dtTo.getDate() + 4);
+								}
+
+								var from = $(element).find("#" + dtFrom.getWeekId());
+
+								var cFrom = from.attr("offset");
+
+								var to = $(element).find("#" + dtTo.getWeekId());
+								var cTo = to.attr("offset");
+
+								var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
+
+								_bar = core.createProgressBar(
+										 dl,
+										 day.customClass ? day.customClass : "",
+										 day.desc ? day.desc : "",
+										 day.label ? day.label : "",
+										day.dataObj ? day.dataObj : null,
+										 day.id ? day.id : ""
+									);
+
+								// find row
+								var topEl = $(element).find("#rowheader" + row);
+
+								var top = tools.getCellSize() * 3 + 2 + parseInt(topEl.attr("offset"), 10);
+								_bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+								datapanel.append(_bar);
+								break;
+
+							// **Monthly data**
+							case "months":
+								var dtFrom = tools.dateDeserialize(day.from);
+								var dtTo = tools.dateDeserialize(day.to);
+
+								if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+									dtFrom.setDate(dtFrom.getDate() + 4);
+								}
+
+								if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+									dtFrom.setDate(dtFrom.getDate() + 4);
+								}
+
+								if (dtTo.getDate() <= 3 && dtTo.getMonth() === 0) {
+									dtTo.setDate(dtTo.getDate() + 4);
+								}
+
+								var from = $(element).find("#dh-" + tools.genId(dtFrom.getTime()));
+								var cFrom = from.attr("offset");
+								var to = $(element).find("#dh-" + tools.genId(dtTo.getTime()));
+								var cTo = to.attr("offset");
+								var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
+
+								_bar = core.createProgressBar(
+									dl,
+									day.customClass ? day.customClass : "",
+									day.desc ? day.desc : "",
+									day.label ? day.label : "",
+									day.dataObj ? day.dataObj : null,
+									day.id ? day.id : ""
+								);
+
+								// find row
+								var topEl = $(element).find("#rowheader" + row);
+
+								var top = tools.getCellSize() * 2 + 2 + parseInt(topEl.attr("offset"), 10);
+								_bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+								datapanel.append(_bar);
+								break;
+
+							// **Days**
+							default:
+								var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
+								var dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
+
+								var from = $(element).find("#dh-" + dFrom);
+								var cFrom = from.attr("offset");
+
+								var dl = Math.floor(((dTo / 1000) - (dFrom / 1000)) / 86400) + 1;
+								_bar = core.createProgressBar(
+											dl,
+											day.customClass ? day.customClass : "",
+											day.desc ? day.desc : "",
+											day.label ? day.label : "",
+											day.dataObj ? day.dataObj : null,
+											day.id ? day.id : ""
+									);
+
+								// find row
+								var topEl = $(element).find("#rowheader" + row);
+
+								var top = tools.getCellSize() * 4 + 2 + parseInt(topEl.attr("offset"), 10);
+								_bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+								datapanel.append(_bar);
+
+								break;
+						}
+						var $l = _bar.find(".fn-label");
+						if ($l && _bar.length) {
+							var gray = invertColor(_bar[0].style.backgroundColor);
+							$l.css("color", gray);
+						} else if ($l) {
+							$l.css("color", "");
+						}
+					}
+				};
                 // Loop through the values of each data element and set a row
-                $.each(element.data, function (i, entry) {
-                    if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-
-                        $.each(entry.values, function (j, day) {
-                            var _bar = null;
-
-                            switch (settings.scale) {
-                                // **Hourly data**
-                                case "hours":
-                                    var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
-                                    var from = $(element).find('#dh-' + dFrom);
-
-                                    var dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
-                                    var to = $(element).find('#dh-' + dTo);
-
-                                    var cFrom = from.attr("offset");
-                                    var cTo = to.attr("offset");
-                                    var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
-
-                                    _bar = core.createProgressBar(
-                                                dl,
-                                                day.customClass ? day.customClass : "",
-                                                day.desc ? day.desc : "",
-                                                day.label ? day.label : "",
-                                                day.dataObj ? day.dataObj : null,
-												day.id ? day.id : ""
-                                            );
-
-                                    // find row
-                                    var topEl = $(element).find("#rowheader" + i);
-
-                                    var top = tools.getCellSize() * 5 + 2 + parseInt(topEl.attr("offset"), 10);
-                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                    datapanel.append(_bar);
-                                    break;
-
-                                // **Weekly data**
-                                case "weeks":
-                                    var dtFrom = tools.dateDeserialize(day.from);
-                                    var dtTo = tools.dateDeserialize(day.to);
-
-                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
-                                        dtFrom.setDate(dtFrom.getDate() + 4);
-                                    }
-
-                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
-                                        dtFrom.setDate(dtFrom.getDate() + 4);
-                                    }
-
-                                    if (dtTo.getDate() <= 3 && dtTo.getMonth() === 0) {
-                                        dtTo.setDate(dtTo.getDate() + 4);
-                                    }
-
-                                    var from = $(element).find("#" + dtFrom.getWeekId());
-
-                                    var cFrom = from.attr("offset");
-
-                                    var to = $(element).find("#" + dtTo.getWeekId());
-                                    var cTo = to.attr("offset");
-
-                                    var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
-
-                                    _bar = core.createProgressBar(
-                                             dl,
-                                             day.customClass ? day.customClass : "",
-                                             day.desc ? day.desc : "",
-                                             day.label ? day.label : "",
-                                            day.dataObj ? day.dataObj : null,
-											 day.id ? day.id : ""
-                                        );
-
-                                    // find row
-                                    var topEl = $(element).find("#rowheader" + i);
-
-                                    var top = tools.getCellSize() * 3 + 2 + parseInt(topEl.attr("offset"), 10);
-                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                    datapanel.append(_bar);
-                                    break;
-
-                                // **Monthly data**
-                                case "months":
-                                    var dtFrom = tools.dateDeserialize(day.from);
-                                    var dtTo = tools.dateDeserialize(day.to);
-
-                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
-                                        dtFrom.setDate(dtFrom.getDate() + 4);
-                                    }
-
-                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
-                                        dtFrom.setDate(dtFrom.getDate() + 4);
-                                    }
-
-                                    if (dtTo.getDate() <= 3 && dtTo.getMonth() === 0) {
-                                        dtTo.setDate(dtTo.getDate() + 4);
-                                    }
-
-                                    var from = $(element).find("#dh-" + tools.genId(dtFrom.getTime()));
-                                    var cFrom = from.attr("offset");
-                                    var to = $(element).find("#dh-" + tools.genId(dtTo.getTime()));
-                                    var cTo = to.attr("offset");
-                                    var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
-
-                                    _bar = core.createProgressBar(
-                                        dl,
-                                        day.customClass ? day.customClass : "",
-                                        day.desc ? day.desc : "",
-                                        day.label ? day.label : "",
-                                        day.dataObj ? day.dataObj : null,
-										day.id ? day.id : ""
-                                    );
-
-                                    // find row
-                                    var topEl = $(element).find("#rowheader" + i);
-
-                                    var top = tools.getCellSize() * 2 + 2 + parseInt(topEl.attr("offset"), 10);
-                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                    datapanel.append(_bar);
-                                    break;
-
-                                // **Days**
-                                default:
-                                    var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
-                                    var dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
-
-                                    var from = $(element).find("#dh-" + dFrom);
-                                    var cFrom = from.attr("offset");
-
-                                    var dl = Math.floor(((dTo / 1000) - (dFrom / 1000)) / 86400) + 1;
-                                    _bar = core.createProgressBar(
-                                                dl,
-                                                day.customClass ? day.customClass : "",
-                                                day.desc ? day.desc : "",
-                                                day.label ? day.label : "",
-                                                day.dataObj ? day.dataObj : null,
-												day.id ? day.id : ""
-                                        );
-
-                                    // find row
-                                    var topEl = $(element).find("#rowheader" + i);
-
-                                    var top = tools.getCellSize() * 4 + 2 + parseInt(topEl.attr("offset"), 10);
-                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                    datapanel.append(_bar);
-
-                                    break;
-                            }
-                            var $l = _bar.find(".fn-label");
-                            if ($l && _bar.length) {
-                                var gray = invertColor(_bar[0].style.backgroundColor);
-                                $l.css("color", gray);
-                            } else if ($l) {
-                                $l.css("color", "");
-                            }
-                        });
-
-                    }
+				// set iterator (AW)
+				var i = 0;
+                $.each(element.data, function (j, entry) {
+                    
+						if (entry.group == true) {
+							var day = {
+								label: entry.name || 'Group',
+								from : tools.getGroupMinDate(entry.values),
+								to : tools.getGroupMaxDate(entry.values),
+							}
+							drawBar(i, day);
+							i++;
+						}
+						// add grouping task
+						// if group and not collapsed iterate
+						if (entry.collapsed == false || entry.collapsed == 'undefined' || entry.group != true){ 
+							$.each(entry.values, function (j, day) {
+								// function (row, day)
+								drawBar(i, day);
+								i++;
+							});
+						}
                 });
 			/*
-			* Dependecies 
+			* Dependecies (AW)
+			Temporary out (fix for groups needed)
 			*/
-				
+			/*	
 			$.each(element.data, function(i, entry) {
 				var defaults = {
 					 distance : 20 // define minimum dependency line length
@@ -1181,7 +1221,7 @@
 				$.each(entry.values, function(j, day) {
 					if (day.id && day.dep)
 					{
-						/* New dependencies function */
+						// New dependencies function 
 						// if there is one dep, create array
 						var deps = ($.isArray(day.dep))?day.dep:[day.dep];
 						$.each(deps, function(k, dep){
@@ -1196,7 +1236,6 @@
 							}
 							, $rightPanel = $(element).find('.fn-gantt .rightPanel')
 							, $dataPanel = $rightPanel.find('.dataPanel')
-							console.log(settings.type);
 							// define end point of first task
 							switch(settings.type){
 								case 'after':
@@ -1215,13 +1254,11 @@
 								'top' : elemEnd.position().top + (Math.round(elemEnd.outerHeight()/2))
 								, 'left' : elemEnd.position().left
 							};
-							console.log(positions);
 							var drawLines = function(obj, left, width, top, height, borders) {
 									obj.css('left' , left  + "px");
 									obj.css('width', width + "px");
 									obj.css('top' , top  + "px");
 									obj.css('height', height + "px");
-									console.log(left,width,top,height);
 									var bdStyle = settings.lineThickness + "px " + settings.lineStyle + " " + settings.lineColor;
 									for (i=0; i<borders.length;i++) {
 										obj.css('border-' + borders[i], bdStyle);
@@ -1317,7 +1354,7 @@
 								}
 				});
 			});
-
+			end deps */
             },
             // **Navigation**
             navigateTo: function (element, val) {
@@ -1872,8 +1909,36 @@
                     $("#measureBarWidth").empty().remove();
                 }
                 return tools._getProgressBarMargin;
-            }
-        };
+            },
+			// counts rows including groups of tasks (AW)
+			getRowCount: function (element) {
+				var rowCount = 0;
+				$.each(element.data, function(i, entry) {
+					// if grouping task and not collapsed add elements count
+					if (entry.group == true && (entry.collapsed == false || entry.collapsed == 'undefined')){
+						rowCount += entry.values.length;
+					}
+					rowCount++;
+				});
+				return rowCount;
+			},
+			// calculate date of first task in group (AW)
+			getGroupMinDate: function(values){
+				var minDate = null;
+				$.each(values, function (i, date) {
+					minDate = minDate > tools.dateDeserialize(date.from) || minDate === null ? tools.dateDeserialize(date.from) : minDate;
+				});
+				return minDate || new Date();
+			},
+			// calculate date of last task in group (AW)
+			getGroupMaxDate: function(values){
+				var maxDate = null;
+				$.each(values, function (i, date) {
+					maxDate = maxDate < tools.dateDeserialize(date.to) ? tools.dateDeserialize(date.to) : maxDate;
+				});
+				return maxDate || new Date();
+			},
+		};
 
 
         this.each(function () {
