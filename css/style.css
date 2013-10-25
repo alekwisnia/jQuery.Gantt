@@ -65,6 +65,13 @@ box-sizing: content-box !important;
     text-overflow: ellipsis;
     overflow: hidden;
 }
+.fn-gantt .leftPanel .fn-group .fn-label {
+	margin-left: 10px;
+}
+.fn-gantt .leftPanel .toggler {
+	position: absolute;
+	left: 0;
+}
 
 .fn-gantt .leftPanel .row0 {
     border-top: 1px solid #DDD;

@@ -327,10 +327,13 @@
                     .append($('<div class="row spacer"/>')
                     .css("height", tools.getCellSize() * element.headerRows + "px")
                     .css("width", "100%"));
-				var drawLabel = function (row, entry){
+				var drawLabel = function (row, entry, el){
 					 if (row >= element.pageNum * settings.itemsPerPage && row < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-                        entries.push('<div class="row name row' + row + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + row + '" offset="' + row % settings.itemsPerPage * tools.getCellSize() + '">');
-                        entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
+                        entries.push('<div class="row name row' + row + (entry.desc ? '' : ' fn-wide') + (entry.group ? ' fn-group' : '') + '" id="rowheader' + row + '" offset="' + row % settings.itemsPerPage * tools.getCellSize() + '" >');
+						if (entry.group){
+							entries.push('<a href="#" class="toggler'+ (entry.collapsed ? ' fn-collapsed' : '') +'"'+((el)!='undefined'?'data-element="'+el+'"':'')+'>'+ (entry.collapsed ? '+' : '-') +'</a>');
+						}
+						entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
                         entries.push('</div>');
 
                         if (entry.desc) {
@@ -345,7 +348,7 @@
 				/* GROUPS TODO AW */
 				var i = 0;
                 $.each(element.data, function (j, entry) {
-					drawLabel(i, entry);
+					drawLabel(i, entry, j);
 					i++;
 					if (entry.collapsed == false || entry.collapsed == 'undefined'){
 						$.each(entry.values, function(k, task){
@@ -360,6 +363,22 @@
 					}
                 });
                 ganttLeftPanel.append(entries.join(""));
+				ganttLeftPanel.on('click', '.toggler', function(e){
+				// collapse/expand toggle
+					e.preventDefault();					
+					var el = $(e.target).data('element');
+					if (el != 'undefined'){
+						try {
+							console.log(element.data[el].collapsed);
+							element.data[el].collapsed = element.data[el].collapsed ? false : true;
+							core.init(element);
+						}
+						catch (err) {
+							console.log(err);
+						}
+					}
+				});
+				
                 return ganttLeftPanel;
             },
 
