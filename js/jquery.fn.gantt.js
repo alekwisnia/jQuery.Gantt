@@ -332,7 +332,7 @@
 					 if (row >= element.pageNum * settings.itemsPerPage && row < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
                         entries.push('<div class="row name row' + row + (entry.desc ? '' : ' fn-wide') + (entry.group ? ' fn-group' : '') + '" id="rowheader' + row + '" offset="' + row % settings.itemsPerPage * tools.getCellSize() + '" >');
 						if (entry.group){
-							entries.push('<a href="#" class="toggler'+ (entry.collapsed ? ' fn-collapsed' : '') +'"'+((el)!='undefined'?'data-element="'+el+'"':'')+'>'+ (entry.collapsed ? '+' : '-') +'</a>');
+							entries.push('<a href="#" class="toggler'+ (entry.collapsed ? ' fn-collapsed' : '') +'"'+((el)!=='undefined'?'data-element="'+el+'"':'')+'>'+ (entry.collapsed ? '+' : '-') +'</a>');
 						}
 						entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
                         entries.push('</div>');
@@ -368,7 +368,7 @@
 				// collapse/expand toggle
 					e.preventDefault();					
 					var el = $(e.target).data('element');
-					if (el != 'undefined'){
+					if (el !== 'undefined'){
 						try {
 							console.log(element.data[el].collapsed);
 							element.data[el].collapsed = element.data[el].collapsed ? false : true;
@@ -1222,7 +1222,7 @@
 						}
 						$.each(entry.values, function (j, day) {
 						// if group and not collapsed draw bar for each task
-							if (entry.collapsed == false || entry.collapsed == 'undefined' || entry.group != true){ 
+							if (entry.collapsed == false || entry.collapsed == 'undefined' || entry.group !== true){ 
 								// function (row, day)
 								drawBar(i, day);
 								i++;
@@ -1310,7 +1310,7 @@
 								, halfHeight = Math.round((verticalDiff+settings.lineThickness)/2)
 								, elemHeight = (Math.round(elemStart.outerHeight()/2)) + 3 + settings.lineThickness;
 								// if there's horizontal distance between tasks
-								if (settings.type == 'after'){
+								if (settings.type === 'after'){
 									if (horizontalDiff > settings.distance) {
 										//dep line consists only of two elements '-|' and '|_'
 										var width = horizontalDiff - settings.distance/2;
@@ -1374,7 +1374,7 @@
 										);
 									};
 								}
-								else if (settings.type == 'middle'){
+								else if (settings.type === 'middle'){
 									if (horizontalDiff > 0) {
 										depLines = [
 											$('<div>', {class : 'depLine', id : day.id+"-"+toId + 'One-Line'})
@@ -1957,7 +1957,7 @@
 				var rowCount = 0;
 				$.each(element.data, function(i, entry) {
 					// if grouping task and not collapsed add elements count
-					if (entry.group == true && (entry.collapsed == false || entry.collapsed == 'undefined')){
+					if (entry.group === true && (entry.collapsed === false || entry.collapsed === 'undefined')){
 						rowCount += entry.values.length;
 					}
 					rowCount++;
