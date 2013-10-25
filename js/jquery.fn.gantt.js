@@ -251,7 +251,8 @@
 
                 element.dateStart = tools.getMinDate(element);
                 element.dateEnd = tools.getMaxDate(element);
-
+				//initialize array of hidden tasks (for grouping tasks AW)
+				element.hiddenIds = [];
 
                 /* core.render(element); */
                 core.waitToggle(element, true, function () { core.render(element); });
@@ -1204,31 +1205,42 @@
 				// set iterator (AW)
 				var i = 0;
                 $.each(element.data, function (j, entry) {
-                    
+						var entryId;
+						// add grouping task
 						if (entry.group == true) {
+							//defines unique Id for group
+							entryId = (entry.id)?entry.id:'group_'+j;
+							//create bar for grouping task
 							var day = {
 								label: entry.name || 'Group',
 								from : tools.getGroupMinDate(entry.values),
 								to : tools.getGroupMaxDate(entry.values),
+								id : entryId,
 							}
 							drawBar(i, day);
 							i++;
 						}
-						// add grouping task
-						// if group and not collapsed iterate
-						if (entry.collapsed == false || entry.collapsed == 'undefined' || entry.group != true){ 
-							$.each(entry.values, function (j, day) {
+						$.each(entry.values, function (j, day) {
+						// if group and not collapsed draw bar for each task
+							if (entry.collapsed == false || entry.collapsed == 'undefined' || entry.group != true){ 
 								// function (row, day)
 								drawBar(i, day);
 								i++;
-							});
-						}
+							}
+						// else store ids of hidden tasks, declaring their parents
+							else if (entry.collapsed == true && entry.group == true){
+								element.hiddenIds.push({
+									'id': day.id,
+									'group': entryId
+								});
+							}
+						});
                 });
 			/*
 			* Dependecies (AW)
 			Temporary out (fix for groups needed)
 			*/
-			/*	
+			
 			$.each(element.data, function(i, entry) {
 				var defaults = {
 					 distance : 20 // define minimum dependency line length
@@ -1255,125 +1267,136 @@
 							}
 							, $rightPanel = $(element).find('.fn-gantt .rightPanel')
 							, $dataPanel = $rightPanel.find('.dataPanel')
-							// define end point of first task
-							switch(settings.type){
-								case 'after':
-									positions.start = {
-										'top' : elemStart.position().top + (Math.round(elemStart.outerHeight()/2))
-										, 'left' : elemStart.position().left + elemStart.outerWidth()
-									}; break;
-								case 'middle':
-									positions.start = {
-										'top' : elemStart.position().top + elemStart.outerHeight()
-										, 'left' : elemStart.position().left + (Math.round(elemStart.outerWidth()/2))
-									}; break;
+							;
+							// let's check if start and end elements exists - they might be hidden
+							if (!(elemStart.length > 0)){
+								elemStart = tools.getGroupingTaskId(element, toId);
 							}
-							// define start point of second task
-							positions.end = {
-								'top' : elemEnd.position().top + (Math.round(elemEnd.outerHeight()/2))
-								, 'left' : elemEnd.position().left
-							};
-							var drawLines = function(obj, left, width, top, height, borders) {
-									obj.css('left' , left  + "px");
-									obj.css('width', width + "px");
-									obj.css('top' , top  + "px");
-									obj.css('height', height + "px");
-									var bdStyle = settings.lineThickness + "px " + settings.lineStyle + " " + settings.lineColor;
-									for (i=0; i<borders.length;i++) {
-										obj.css('border-' + borders[i], bdStyle);
-									}
-							};
-							var horizontalDiff = positions.end.left-positions.start.left
-							, verticalDiff = positions.end.top-positions.start.top
-							, halfHeight = Math.round((verticalDiff+settings.lineThickness)/2)
-							, elemHeight = (Math.round(elemStart.outerHeight()/2)) + 3 + settings.lineThickness;
-							// if there's horizontal distance between tasks
-							if (settings.type == 'after'){
-								if (horizontalDiff > settings.distance) {
-									//dep line consists only of two elements '-|' and '|_'
-									var width = horizontalDiff - settings.distance/2;
-									depLines = [
-										$('<div>', {class : 'depLine', id : day.id+"-"+toId+'Top'})
-										, $('<div>', {class : 'depLine', id : day.id+"-"+toId+'Bottom'})
-									];
-									// draw top and right line
-									drawLines(
-										depLines[0]
-										, positions.start.left
-										, width
-										, positions.start.top
-										, halfHeight
-										, ['top', 'right']
-									);
-									// draw bottom and left line
-									drawLines(
-										depLines[1]
-										, positions.start.left + width - settings.lineThickness
-										, settings.distance/2 + settings.lineThickness
-										, positions.start.top + halfHeight
-										, halfHeight
-										, ['left','bottom']
-									);
+							if (!(elemEnd.length > 0)){
+								elemEnd = tools.getGroupingTaskId(element, day.id);
+							}
+							// if start and end elements exist
+							if (elemStart && elemEnd){
+								// define end point of first task
+								switch(settings.type){
+									case 'after':
+										positions.start = {
+											'top' : elemStart.position().top + (Math.round(elemStart.outerHeight()/2))
+											, 'left' : elemStart.position().left + elemStart.outerWidth()
+										}; break;
+									case 'middle':
+										positions.start = {
+											'top' : elemStart.position().top + elemStart.outerHeight()
+											, 'left' : elemStart.position().left + (Math.round(elemStart.outerWidth()/2))
+										}; break;
 								}
-								else {
-									//dep line consists of three elements '-|', '--' and '|_'
-									var width = 0 - horizontalDiff;
-									depLines = [
-										$('<div>', {class : 'depLine', id : day.id+"-"+toId+'Top'})
-										, $('<div>', {class : 'depLine', id : day.id+"-"+toId+ 'Middle'})
-										, $('<div>', {class : 'depLine', id : day.id+"-"+toId+ 'Bottom'})
-									]
-									// draw top lines
-									drawLines(
-										depLines[0]
-										, positions.start.left
-										, Math.round(settings.distance/2)
-										, positions.start.top
-										, elemHeight
-										, ['top', 'right', 'bottom']
-									);
-									// draw middle line
-									drawLines(
-										depLines[1]
-										, positions.start.left - width
-										, width
-										, positions.start.top + elemHeight - settings.lineThickness
-										, settings.lineThickness
-										, ['bottom']
-									);
-									// draw bottom lines
-									drawLines(
-										depLines[2]
-										, positions.end.left - Math.round(settings.distance/2)
-										, Math.round(settings.distance/2)
-										, positions.start.top + elemHeight - settings.lineThickness
-										, verticalDiff - elemHeight + settings.lineThickness
-										, ['top', 'left', 'bottom']
-									);
+								// define start point of second task
+								positions.end = {
+									'top' : elemEnd.position().top + (Math.round(elemEnd.outerHeight()/2))
+									, 'left' : elemEnd.position().left
 								};
-							}
-							else if (settings.type == 'middle'){
-								if (horizontalDiff > 0) {
-									depLines = [
-										$('<div>', {class : 'depLine', id : day.id+"-"+toId + 'One-Line'})
-									];
-									// draw top and right line
-									drawLines(
-										depLines[0]
-										, positions.start.left
-										, horizontalDiff
-										, positions.start.top
-										, verticalDiff
-										, ['left', 'bottom']
-									);
+								var drawLines = function(obj, left, width, top, height, borders) {
+										obj.css('left' , left  + "px");
+										obj.css('width', width + "px");
+										obj.css('top' , top  + "px");
+										obj.css('height', height + "px");
+										var bdStyle = settings.lineThickness + "px " + settings.lineStyle + " " + settings.lineColor;
+										for (i=0; i<borders.length;i++) {
+											obj.css('border-' + borders[i], bdStyle);
+										}
 								};
+								var horizontalDiff = positions.end.left-positions.start.left
+								, verticalDiff = positions.end.top-positions.start.top
+								, halfHeight = Math.round((verticalDiff+settings.lineThickness)/2)
+								, elemHeight = (Math.round(elemStart.outerHeight()/2)) + 3 + settings.lineThickness;
+								// if there's horizontal distance between tasks
+								if (settings.type == 'after'){
+									if (horizontalDiff > settings.distance) {
+										//dep line consists only of two elements '-|' and '|_'
+										var width = horizontalDiff - settings.distance/2;
+										depLines = [
+											$('<div>', {class : 'depLine', id : day.id+"-"+toId+'Top'})
+											, $('<div>', {class : 'depLine', id : day.id+"-"+toId+'Bottom'})
+										];
+										// draw top and right line
+										drawLines(
+											depLines[0]
+											, positions.start.left
+											, width
+											, positions.start.top
+											, halfHeight
+											, ['top', 'right']
+										);
+										// draw bottom and left line
+										drawLines(
+											depLines[1]
+											, positions.start.left + width - settings.lineThickness
+											, settings.distance/2 + settings.lineThickness
+											, positions.start.top + halfHeight
+											, halfHeight
+											, ['left','bottom']
+										);
+									}
+									else {
+										//dep line consists of three elements '-|', '--' and '|_'
+										var width = 0 - horizontalDiff;
+										depLines = [
+											$('<div>', {class : 'depLine', id : day.id+"-"+toId+'Top'})
+											, $('<div>', {class : 'depLine', id : day.id+"-"+toId+ 'Middle'})
+											, $('<div>', {class : 'depLine', id : day.id+"-"+toId+ 'Bottom'})
+										]
+										// draw top lines
+										drawLines(
+											depLines[0]
+											, positions.start.left
+											, Math.round(settings.distance/2)
+											, positions.start.top
+											, elemHeight
+											, ['top', 'right', 'bottom']
+										);
+										// draw middle line
+										drawLines(
+											depLines[1]
+											, positions.start.left - width
+											, width
+											, positions.start.top + elemHeight - settings.lineThickness
+											, settings.lineThickness
+											, ['bottom']
+										);
+										// draw bottom lines
+										drawLines(
+											depLines[2]
+											, positions.end.left - Math.round(settings.distance/2)
+											, Math.round(settings.distance/2)
+											, positions.start.top + elemHeight - settings.lineThickness
+											, verticalDiff - elemHeight + settings.lineThickness
+											, ['top', 'left', 'bottom']
+										);
+									};
+								}
+								else if (settings.type == 'middle'){
+									if (horizontalDiff > 0) {
+										depLines = [
+											$('<div>', {class : 'depLine', id : day.id+"-"+toId + 'One-Line'})
+										];
+										// draw top and right line
+										drawLines(
+											depLines[0]
+											, positions.start.left
+											, horizontalDiff
+											, positions.start.top
+											, verticalDiff
+											, ['left', 'bottom']
+										);
+									};
+								}
 							}
 							$dataPanel.append(depLines);
 						}); // end each dep
-								}
+					};
 				});
 			});
-			end deps */
+			/*end deps */
             },
             // **Navigation**
             navigateTo: function (element, val) {
@@ -1956,6 +1979,13 @@
 					maxDate = maxDate < tools.dateDeserialize(date.to) ? tools.dateDeserialize(date.to) : maxDate;
 				});
 				return maxDate || new Date();
+			},
+			// find grouping task for task of given id
+			getGroupingTaskId: function(element, id){
+				for (var i = 0, len = element.hiddenIds.length; i < len; i++) {
+					if (element.hiddenIds[i].id === id) return $('#'+element.hiddenIds[i].group);
+					else return null;
+				};
 			},
 		};
 
