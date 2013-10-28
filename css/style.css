@@ -206,6 +206,12 @@ box-sizing: content-box !important;
             -moz-border-radius: 3px;
             border-radius: 3px;
 }
+.fn-gantt .bar.group {
+	border-left: 1px solid #999;
+	border-right: 1px solid #999;
+	height: 21px;
+	margin-top: -1px;
+}
 
 .fn-gantt .bar .fn-label {
     line-height: 18px;

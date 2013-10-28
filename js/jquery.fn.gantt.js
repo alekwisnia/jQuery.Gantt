@@ -344,14 +344,14 @@
                         }
 
                     }
-				}
+				};
                 var entries = [];
 				/* GROUPS TODO AW */
 				var i = 0;
                 $.each(element.data, function (j, entry) {
 					drawLabel(i, entry, j);
 					i++;
-					if (entry.collapsed == false || entry.collapsed == 'undefined'){
+					if (entry.collapsed === false || entry.collapsed === 'undefined'){
 						$.each(entry.values, function(k, task){
 							var entry = {
 								desc : task.label || "",
@@ -1207,7 +1207,7 @@
                 $.each(element.data, function (j, entry) {
 						var entryId;
 						// add grouping task
-						if (entry.group == true) {
+						if (entry.group === true) {
 							//defines unique Id for group
 							entryId = (entry.id)?entry.id:'group_'+j;
 							//create bar for grouping task
@@ -1216,19 +1216,20 @@
 								from : tools.getGroupMinDate(entry.values),
 								to : tools.getGroupMaxDate(entry.values),
 								id : entryId,
+								customClass: entry.customClass ? entry.customClass + ' group' : 'group',
 							}
 							drawBar(i, day);
 							i++;
 						}
 						$.each(entry.values, function (j, day) {
 						// if group and not collapsed draw bar for each task
-							if (entry.collapsed == false || entry.collapsed == 'undefined' || entry.group !== true){ 
+							if (entry.collapsed === false || entry.collapsed === 'undefined' || entry.group !== true){ 
 								// function (row, day)
 								drawBar(i, day);
 								i++;
 							}
 						// else store ids of hidden tasks, declaring their parents
-							else if (entry.collapsed == true && entry.group == true){
+							else if (entry.collapsed === true && entry.group === true){
 								element.hiddenIds.push({
 									'id': day.id,
 									'group': entryId
@@ -1315,8 +1316,8 @@
 										//dep line consists only of two elements '-|' and '|_'
 										var width = horizontalDiff - settings.distance/2;
 										depLines = [
-											$('<div>', {class : 'depLine', id : day.id+"-"+toId+'Top'})
-											, $('<div>', {class : 'depLine', id : day.id+"-"+toId+'Bottom'})
+											$('<div>', {'class' : 'depLine', id : day.id+"-"+toId+'Top'})
+											, $('<div>', {'class' : 'depLine', id : day.id+"-"+toId+'Bottom'})
 										];
 										// draw top and right line
 										drawLines(
@@ -1341,9 +1342,9 @@
 										//dep line consists of three elements '-|', '--' and '|_'
 										var width = 0 - horizontalDiff;
 										depLines = [
-											$('<div>', {class : 'depLine', id : day.id+"-"+toId+'Top'})
-											, $('<div>', {class : 'depLine', id : day.id+"-"+toId+ 'Middle'})
-											, $('<div>', {class : 'depLine', id : day.id+"-"+toId+ 'Bottom'})
+											$('<div>', {'class' : 'depLine', id : day.id+"-"+toId+'Top'})
+											, $('<div>', {'class' : 'depLine', id : day.id+"-"+toId+ 'Middle'})
+											, $('<div>', {'class' : 'depLine', id : day.id+"-"+toId+ 'Bottom'})
 										]
 										// draw top lines
 										drawLines(
@@ -1377,7 +1378,7 @@
 								else if (settings.type === 'middle'){
 									if (horizontalDiff > 0) {
 										depLines = [
-											$('<div>', {class : 'depLine', id : day.id+"-"+toId + 'One-Line'})
+											$('<div>', {'class' : 'depLine', id : day.id+"-"+toId + 'One-Line'})
 										];
 										// draw top and right line
 										drawLines(
