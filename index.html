@@ -606,7 +606,7 @@ dep: [
 		</div>
 
 	<script src="js/jquery.min.js"></script>
-	<script src="js/jquery.fn.gantt.js"></script>
+	<script src="js/jquery.fn.gantt.min.js"></script>
 	<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 	<script src="http://taitems.github.com/UX-Lab/core/js/prettify.js"></script>
   <script>
@@ -616,20 +616,19 @@ dep: [
 
 			$(".gantt").gantt({
 				source: [{
-					name: "Sprint 0",
+					name: "Group 1",
 					desc: "Analysis",
+					group: true,
+					collapsed: true,
 					values: [{
 						id: "t01",
 						from: "/Date(1383436800000)/",
 						to: "/Date(1385646400000)/",
 						label: "Requirement Gathering",
 						customClass: "ganttRed"
-					}]
-				},{
-					name: " ",
-					desc: "Scoping",
-					values: [{
-						id: "t02",
+					},
+					{
+						id: "r02",
 						from: "/Date(1385856000000)/",
 						to: "/Date(1386547200000)/",
 						label: "Scoping",
@@ -637,29 +636,23 @@ dep: [
 						dep: "t01"
 					}]
 				},{
-					name: "Sprint 1",
+					name: "Group 2",
 					desc: "Development",
+					group: true,
+					collapsed: false,
 					values: [{
 						id: "t03",
 						from: "/Date(1387047200000)/",
 						to: "/Date(1388930000000)/",
 						label: "Development",
 						customClass: "ganttGreen"
-					}]
-				},{
-					name: " ",
-					desc: "Showcasing",
-					values: [{
+					},{
 						id: "t04",
 						from: "/Date(1388930000000)/",
 						to: "/Date(1388940000000)/",
 						label: "Showcasing",
 						customClass: "ganttBlue"
-					}]
-				},{
-					name: "Sprint 2",
-					desc: "Development",
-					values: [{
+					},{
 						id: "t05",
 						from: "/Date(1390030000000)/",
 						to: "/Date(1392030000000)/",
@@ -670,9 +663,10 @@ dep: [
 							't04',
 							{id: 't01', options: {lineColor: '#F00', lineStyle: 'dashed', type: 'middle'}}
 						]
-					}]
+					}
+					]
 				},{
-					name: " ",
+					name: "Old style",
 					desc: "Showcasing",
 					values: [{
 						id: "t06",

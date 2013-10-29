@@ -65,6 +65,13 @@ box-sizing: content-box !important;
     text-overflow: ellipsis;
     overflow: hidden;
 }
+.fn-gantt .leftPanel .fn-group .fn-label {
+	margin-left: 10px;
+}
+.fn-gantt .leftPanel .toggler {
+	position: absolute;
+	left: 0;
+}
 
 .fn-gantt .leftPanel .row0 {
     border-top: 1px solid #DDD;
@@ -198,6 +205,12 @@ box-sizing: content-box !important;
             -webkit-border-radius: 3px;
             -moz-border-radius: 3px;
             border-radius: 3px;
+}
+.fn-gantt .bar.group {
+	border-left: 1px solid #999;
+	border-right: 1px solid #999;
+	height: 21px;
+	margin-top: -1px;
 }
 
 .fn-gantt .bar .fn-label {
