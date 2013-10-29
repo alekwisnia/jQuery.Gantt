@@ -802,19 +802,19 @@
                     ganttNavigate = $('<div class="navigate" />')
                         .append($('<div class="nav-slider" />')
                             .append($('<div class="nav-slider-left" />')
-                                .append($('<span role="button" class="nav-link nav-page-back"/>')
+                                .append((element.pageCount>1)?$('<span role="button" class="nav-link nav-page-back"/>')
                                     .html('&lt;')
                                     .click(function () {
                                         core.navigatePage(element, -1);
-                                    }))
-                                .append($('<div class="page-number"/>')
+                                    }):'')
+                                .append((element.pageCount>1)?$('<div class="page-number"/>')
                                         .append($('<span/>')
-                                            .html(element.pageNum + 1 + ' of ' + element.pageCount)))
-                                .append($('<span role="button" class="nav-link nav-page-next"/>')
+                                            .html(element.pageNum + 1 + ' of ' + element.pageCount)):'')
+                                .append((element.pageCount>1)?$('<span role="button" class="nav-link nav-page-next"/>')
                                     .html('&gt;')
                                     .click(function () {
                                         core.navigatePage(element, 1);
-                                    }))
+                                    }):'')
                                 .append($('<span role="button" class="nav-link nav-now"/>')
                                     .html('&#9679;')
                                     .click(function () {
@@ -907,19 +907,19 @@
                 // Button navigation is provided by setting `settings.navigation='buttons'`
                 } else {
                     ganttNavigate = $('<div class="navigate" />')
-                        .append($('<span role="button" class="nav-link nav-page-back"/>')
+                        .append((element.pageCount>1)?$('<span role="button" class="nav-link nav-page-back"/>')
                             .html('&lt;')
                             .click(function () {
                                 core.navigatePage(element, -1);
-                            }))
-                        .append($('<div class="page-number"/>')
+                            }):'')
+                        .append((element.pageCount>1)?$('<div class="page-number"/>')
                                 .append($('<span/>')
-                                    .html(element.pageNum + 1 + ' of ' + element.pageCount)))
-                        .append($('<span role="button" class="nav-link nav-page-next"/>')
+                                    .html(element.pageNum + 1 + ' of ' + element.pageCount)):'')
+                        .append((element.pageCount>1)?$('<span role="button" class="nav-link nav-page-next"/>')
                             .html('&gt;')
                             .click(function () {
                                 core.navigatePage(element, 1);
-                            }))
+                            }):'')
                         .append($('<span role="button" class="nav-link nav-begin"/>')
                             .html('&#124;&lt;')
                             .click(function () {
